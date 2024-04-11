@@ -4,6 +4,7 @@ import yaml
 import numpy as np
 import pickle
 import joblib
+import json
 
 LABELS = {
     'female': np.array([
@@ -25,6 +26,7 @@ class DEMO_S2A():
         ds_genders_path='../samples/genders.yaml',
         model_gender='neutral',
         model_type='smplx',
+       
     ):
         self.ds_gender = yaml.safe_load(open(ds_genders_path, 'r')) # even if the smpl betas are neutral,
         # the gender of the person on the image is required, because S2A are gender specific.
@@ -64,7 +66,8 @@ class DEMO_A2S():
         ds_gender='female',
         model_gender='neutral',
         model_type='smplx',
-        rating_folder='../samples/attributes/'
+        rating_folder='../samples/attributes/',
+        input
     ):
         self.ds_gender = ds_gender # even if the smpl betas are neutral,
         # the gender of the person on the image is required, 
@@ -76,16 +79,19 @@ class DEMO_A2S():
         #self.betas_key = f'betas_{self.model_type}_{self.model_gender}'
 
 
-        self.rating_path = osp.join(rating_folder, f'modeldata_for_a2s_{self.ds_gender}.pt')
-        self.db = joblib.load(self.rating_path)
+        self.rating_path = osp.join(input, f'rating.json')
+      
         
-        if 'rating' not in self.db.keys():
-            self.db['rating'] = self.db['ratings']
-
-        self.db['height_gt'] = self.db['heights'].astype(np.float32)
-        self.db['chest'] = self.db['bust'].astype(np.float32) / 100
-        self.db['waist'] = self.db['waist'].astype(np.float32) / 100
-        self.db['hips'] = self.db['hips'].astype(np.float32) / 100
+        f = open(self.rating_path) 
+        data = json.load(f)
+        
+        self.db['ids'] = data['ids']
+        self.db['rating'] = data['rating']
+        self.db['rating_label'] = data['rating_label']
+        self.db['height_gt'] = data['heights']
+        self.db['chest'] = data['bust'].astype(np.float32) / 100
+        self.db['waist'] = data['waist'].astype(np.float32) / 100
+        self.db['hips'] = data['hips'].astype(np.float32) / 100
 
     def create_db(self, ds_gender):
         """Bring data into structure that is compatible with model class"""

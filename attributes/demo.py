@@ -13,7 +13,7 @@ from omegaconf import OmegaConf
 from attributes.attributes_betas.build import MODEL_DICT
 
 
-def main(args, demo_output_folder, smpl_model_path, render=True):
+def main(args, demo_output_folder, smpl_model_path, demo_input_folder, render=True):
 
     os.makedirs(args.output_dir, exist_ok=True)
 
@@ -26,7 +26,6 @@ def main(args, demo_output_folder, smpl_model_path, render=True):
     model_type = args.get('model_type', 'smplx')
 
     os.makedirs(demo_output_folder, exist_ok=True)
-
     if network_type == 'a2b':
         if render:
             import trimesh
@@ -59,6 +58,7 @@ def main(args, demo_output_folder, smpl_model_path, render=True):
             model_gender=model_gender,
             model_type=model_type,
             rating_folder='../samples/attributes/'
+            input=demo_input_folder
         )
 
         test_input, _ = loaded_model.create_input_feature_vec(dataset.db)
@@ -144,8 +144,12 @@ if __name__ == "__main__":
     parser.add_argument('--exp-opts', default=[], dest='exp_opts',
                         nargs='*',
                         help='The configuration of the Detector')
+    parser.add_argument('--input', type=str, dest='input',
+                        nargs='+', default=[],
+                        help='Input folder')
     cmd_args = parser.parse_args()
     demo_output_folder = cmd_args.demo_output_folder
+    demo_input_folder = cmd_args.input
     smpl_model_path = cmd_args.smpl_model_path
 
     cfg = default_conf.copy()
@@ -155,4 +159,4 @@ if __name__ == "__main__":
     if cmd_args.exp_opts:
         cfg.merge_with(OmegaConf.from_cli(cmd_args.exp_opts))
 
-    main(cfg, demo_output_folder, smpl_model_path)
+    main(cfg, demo_output_folder, smpl_model_path, demo_input_folder)
